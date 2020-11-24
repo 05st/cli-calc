@@ -2,7 +2,7 @@ use std::io::Write;
 use std::io;
 
 #[derive(Debug)]
-enum TokenType { NUM, ADD, SUB, MUL, DIV, LPA, RPA, END }
+enum TokenType { NUM, ADD, SUB, MUL, DIV, LPA, RPA }
 
 #[derive(Debug)]
 struct Token {
@@ -11,9 +11,7 @@ struct Token {
 }
 
 fn analyze(text: String) -> Vec<Token> {
-    let pos: i32 = 0;
     let mut num_buffer: String = String::new();
-
     let mut tokens: Vec<Token> = Vec::new();
 
     for c in text.chars() {
@@ -50,11 +48,13 @@ fn analyze(text: String) -> Vec<Token> {
 fn main() {
     loop {
         print!(">");
-        io::stdout().flush();
+        io::stdout().flush().unwrap();
         let mut input = String::new();
+
         io::stdin()
             .read_line(&mut input)
-            .expect("Failed to read input");
+            .expect("Failed to read input"); 
+
         let tokens: Vec<Token> = analyze(input);
         for token in tokens.iter() {
             println!("{:?}", token);
