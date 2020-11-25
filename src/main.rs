@@ -1,59 +1,68 @@
-use std::io::Write;
 use std::io;
+use std::io::Write;
+use std::process;
 
 #[derive(Debug)]
-enum TokenType { NUM, ADD, SUB, MUL, DIV, LPA, RPA }
+enum Token { NUM(f64), ADD, SUB, MUL, DIV, EXP, FUN(String), LPR, RPR }
 
-#[derive(Debug)]
-struct Token {
-    token_type: TokenType,
-    lexeme: String
+fn precedence(operator: Token) -> u8 {
+    match operator {
+        Token::ADD => 1,
+        Token::SUB => 1,
+        Token::MUL => 2,
+        Token::DIV => 2,
+        Token::EXP => 3,
+        _ => 0
+    }
 }
 
 fn analyze(text: String) -> Vec<Token> {
-    let mut num_buffer: String = String::new();
     let mut tokens: Vec<Token> = Vec::new();
+    let mut num_buffer: String = String::new();
 
-    for c in text.chars() {
-        if c.is_digit(10) || c == '.' {
-            num_buffer += &c.to_string();
+    for character in text.chars() {
+        if character.is_digit(10) || character == '.' {
+            num_buffer += &character.to_string();
             continue;
-        } else if !num_buffer.is_empty() {
-            tokens.push(Token{
-                token_type: TokenType::NUM,
-                lexeme: num_buffer
-            });
-            num_buffer = String::new();
         }
 
-        let token_type = match c {
-            '+' => Some(TokenType::ADD),
-            '-' => Some(TokenType::SUB),
-            '*' => Some(TokenType::MUL),
-            '/' => Some(TokenType::DIV),
-            '(' => Some(TokenType::LPA),
-            ')' => Some(TokenType::RPA),
-            _ => None
-        };
+        if !num_buffer.is_empty() {
+            tokens.push(Token::NUM(num_buffer.parse::<f64>().expect("Failed to parse String to f64")));
+            num_buffer.clear();
+        }
 
-        match token_type {
-            Some(t) => tokens.push(Token {token_type: t, lexeme: c.to_string()}),
-            None => ()
-        };
+        match character {
+            '+' => tokens.push(Token::ADD),
+            '-' => tokens.push(Token::SUB),
+            '*' => tokens.push(Token::MUL),
+            '/' => tokens.push(Token::DIV),
+            '^' => tokens.push(Token::EXP),
+            '(' => tokens.push(Token::LPR),
+            ')' => tokens.push(Token::RPR),
+            _ => ()
+        }
     }
 
     return tokens;
 }
 
 fn main() {
+    println!("cli-calc version 1.0");
+    println!(":help for commands");
     loop {
-        print!(">");
+        print!(">> ");
         io::stdout().flush().unwrap();
-        let mut input = String::new();
 
-        io::stdin()
-            .read_line(&mut input)
-            .expect("Failed to read input"); 
+        let mut input: String = String::new();
+        io::stdin().read_line(&mut input).expect("Failed to read input");
+
+        if input.contains(":help") {
+            println!(":exit to close");
+            println!(":help for commands");
+            continue;
+        } else if input.contains(":exit") {
+            process::exit(0);
+        }
 
         let tokens: Vec<Token> = analyze(input);
         for token in tokens.iter() {
