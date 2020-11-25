@@ -1,17 +1,21 @@
 use std::io;
 use std::io::Write;
 use std::process;
+use std::collections::VecDeque;
 
-#[derive(Debug)]
-enum Token { NUM(f64), ADD, SUB, MUL, DIV, EXP, FUN(String), LPR, RPR }
+#[derive(Clone, Debug, PartialEq)]
+enum Operator { ADD, SUB, MUL, DIV, EXP }
 
-fn precedence(operator: Token) -> u8 {
+#[derive(Clone, Debug)]
+enum Token { NUM(f64), OPE(Operator), FUN(String), LPR, RPR }
+
+fn precedence(operator: Operator) -> u8 {
     match operator {
-        Token::ADD => 1,
-        Token::SUB => 1,
-        Token::MUL => 2,
-        Token::DIV => 2,
-        Token::EXP => 3,
+        Operator::ADD => 1,
+        Operator::SUB => 1,
+        Operator::MUL => 2,
+        Operator::DIV => 2,
+        Operator::EXP => 3,
         _ => 0
     }
 }
@@ -32,11 +36,11 @@ fn analyze(text: String) -> Vec<Token> {
         }
 
         match character {
-            '+' => tokens.push(Token::ADD),
-            '-' => tokens.push(Token::SUB),
-            '*' => tokens.push(Token::MUL),
-            '/' => tokens.push(Token::DIV),
-            '^' => tokens.push(Token::EXP),
+            '+' => tokens.push(Token::OPE(Operator::ADD)),
+            '-' => tokens.push(Token::OPE(Operator::SUB)),
+            '*' => tokens.push(Token::OPE(Operator::MUL)),
+            '/' => tokens.push(Token::OPE(Operator::DIV)),
+            '^' => tokens.push(Token::OPE(Operator::EXP)),
             '(' => tokens.push(Token::LPR),
             ')' => tokens.push(Token::RPR),
             _ => ()
@@ -44,6 +48,53 @@ fn analyze(text: String) -> Vec<Token> {
     }
 
     return tokens;
+}
+
+fn shunting_yard(tokens: Vec<Token>) -> VecDeque<Token> {
+    let mut queue: VecDeque<Token> = VecDeque::new();
+    let mut stack: Vec<Token> = Vec::new();
+
+    for token in tokens.iter() {
+        match token {
+            Token::NUM(_) => queue.push_back(token.clone()),
+            Token::OPE(x) => {
+                loop {
+                    if let Some(v) = stack.last() {
+                        if let Token::OPE(y) = v {
+                            if precedence(y.clone()) > precedence(x.clone()) || (precedence(y.clone()) == precedence(x.clone()) && x.clone() != Operator::EXP) {
+                                queue.push_back(stack.pop().unwrap());
+                            } else {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                stack.push(token.clone());
+            },
+            Token::LPR => stack.push(token.clone()),
+            Token::RPR => {
+                loop {
+                    if let Token::LPR = stack.last().unwrap() {
+                        stack.pop().unwrap();
+                        break;
+                    } else {
+                        queue.push_back(stack.pop().unwrap());
+                    }
+                }
+            },
+            _ => (),
+        }
+    }
+
+    while stack.len() > 0 {
+        queue.push_back(stack.pop().unwrap());
+    }
+
+    return queue;
 }
 
 fn main() {
@@ -64,9 +115,11 @@ fn main() {
             process::exit(0);
         }
 
-        let tokens: Vec<Token> = analyze(input);
+        let tokens: VecDeque<Token> = shunting_yard(analyze(input));
+        let mut id: i32 = 1;
         for token in tokens.iter() {
-            println!("{:?}", token);
+            println!("{}: {:?}", id, token);
+            id += 1;
         }
     }
 }
