@@ -7,15 +7,39 @@ use std::collections::VecDeque;
 enum Operator { ADD, SUB, MUL, DIV, EXP }
 
 #[derive(Clone, Debug)]
-enum Token { NUM(f64), OPE(Operator), FUN(String), LPR, RPR }
+enum Token { NUM(f64), OPE(Operator), IDN(String), LPR, RPR }
 
-fn precedence(operator: Operator) -> u8 {
-    match operator {
-        Operator::ADD => 1,
-        Operator::SUB => 1,
-        Operator::MUL => 2,
-        Operator::DIV => 2,
-        Operator::EXP => 3,
+impl Operator {
+    fn precedence(self) -> u8 {
+        match self {
+            Operator::ADD => 1,
+            Operator::SUB => 1,
+            Operator::MUL => 2,
+            Operator::DIV => 2,
+            Operator::EXP => 3
+        }
+    }
+
+    fn display(self) -> String {
+        match self {
+            Operator::ADD => "+",
+            Operator::SUB => "-",
+            Operator::MUL => "*",
+            Operator::DIV => "/",
+            Operator::EXP => "^"
+        }.to_string()
+    }
+}
+
+impl Token {
+    fn display(self) -> String {
+        match self {
+            Token::NUM(x) => x.to_string(),
+            Token::OPE(x) => return x.display(),
+            Token::IDN(x) => return x,
+            Token::LPR => "(".to_string(),
+            Token::RPR => ")".to_string()
+        }
     }
 }
 
@@ -60,7 +84,7 @@ fn shunting_yard(tokens: Vec<Token>) -> VecDeque<Token> {
                 loop {
                     if let Some(v) = stack.last() {
                         if let Token::OPE(y) = v {
-                            if precedence(y.clone()) > precedence(x.clone()) || (precedence(y.clone()) == precedence(x.clone()) && x.clone() != Operator::EXP) {
+                            if y.clone().precedence() > x.clone().precedence() || (y.clone().precedence() == x.clone().precedence() && x.clone() != Operator::EXP) {
                                 queue.push_back(stack.pop().unwrap());
                             } else {
                                 break;
@@ -133,9 +157,9 @@ fn main() {
         let mut show_rpn: bool = false;
 
         if input.contains(":help") {
-            println!(":exit to close");
-            println!(":help for commands");
-            println!(":rpn <expr> to show rpn queue");
+            println!(":exit");
+            println!(":help");
+            println!(":rpn <expr>");
             continue;
         } else if input.contains(":exit") {
             process::exit(0);
@@ -147,7 +171,7 @@ fn main() {
         if show_rpn {
             let mut id: i32 = 1;
             for token in tokens.iter() {
-                println!("{}: {:?}", id, token);
+                println!("{}: {:?}\t({})", id, token, token.clone().display());
                 id += 1;
             }
             print!("\n");
