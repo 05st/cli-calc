@@ -46,6 +46,7 @@ impl Token {
 fn analyze(text: String) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
     let mut num_buffer: String = String::new();
+    let mut idn_buffer: String = String::new();
 
     for character in text.chars() {
         if character.is_digit(10) || character == '.' {
@@ -56,6 +57,16 @@ fn analyze(text: String) -> Vec<Token> {
         if !num_buffer.is_empty() {
             tokens.push(Token::NUM(num_buffer.parse::<f64>().expect("Failed to parse String to f64")));
             num_buffer.clear();
+        }
+
+        if character.is_alphabetic() {
+            idn_buffer += &character.to_string();
+            continue;
+        }
+
+        if !idn_buffer.is_empty() {
+            tokens.push(Token::IDN(idn_buffer.clone()));
+            idn_buffer.clear();
         }
 
         match character {
@@ -154,28 +165,29 @@ fn main() {
         let mut input: String = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read input");
 
-        let mut show_rpn: bool = false;
+        let mut show_tokens: bool = false;
 
         if input.contains(":help") {
             println!(":exit");
             println!(":help");
-            println!(":rpn <expr>");
+            println!(":tokens <expr>");
             continue;
         } else if input.contains(":exit") {
             process::exit(0);
-        } else if input.contains(":rpn") {
-            show_rpn = true;
+        } else if input.contains(":tokens") {
+            show_tokens = true;
         }
 
-        let tokens: VecDeque<Token> = shunting_yard(analyze(input));
-        if show_rpn {
+        let tokens: Vec<Token> = analyze(input);
+        if show_tokens {
             let mut id: i32 = 1;
             for token in tokens.iter() {
-                println!("{}: {:?}\t({})", id, token, token.clone().display());
+                println!("{}: {:?} [{}]", id, token, token.clone().display());
                 id += 1;
             }
             print!("\n");
         }
-        println!("{}", evaluate_rpn(tokens));
+        let rpn: VecDeque<Token> = shunting_yard(tokens);
+        println!("{}", evaluate_rpn(rpn));
     }
 }
