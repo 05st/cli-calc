@@ -16,7 +16,6 @@ fn precedence(operator: Operator) -> u8 {
         Operator::MUL => 2,
         Operator::DIV => 2,
         Operator::EXP => 3,
-        _ => 0
     }
 }
 
@@ -97,6 +96,30 @@ fn shunting_yard(tokens: Vec<Token>) -> VecDeque<Token> {
     return queue;
 }
 
+fn evaluate_rpn(tokens: VecDeque<Token>) -> f64 {
+    let mut num_stack: Vec<f64> = Vec::new();
+
+    for token in tokens.iter() {
+        match token {
+            Token::NUM(x) => num_stack.push(x.clone()),
+            Token::OPE(x) => {
+                let a: f64 = num_stack.pop().unwrap();
+                let b: f64 = num_stack.pop().unwrap();
+                match x {
+                    Operator::ADD => num_stack.push(a + b),
+                    Operator::SUB => num_stack.push(b - a),
+                    Operator::MUL => num_stack.push(a * b),
+                    Operator::DIV => num_stack.push(a / b),
+                    Operator::EXP => num_stack.push(a.powf(b)),
+                }
+            }
+            _ => ()
+        }
+    }
+
+    return num_stack.pop().unwrap_or(0.0);
+}
+
 fn main() {
     println!("cli-calc version 1.0");
     println!(":help for commands");
@@ -107,19 +130,28 @@ fn main() {
         let mut input: String = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read input");
 
+        let mut show_rpn: bool = false;
+
         if input.contains(":help") {
             println!(":exit to close");
             println!(":help for commands");
+            println!(":rpn <expr> to show rpn queue");
             continue;
         } else if input.contains(":exit") {
             process::exit(0);
+        } else if input.contains(":rpn") {
+            show_rpn = true;
         }
 
         let tokens: VecDeque<Token> = shunting_yard(analyze(input));
-        let mut id: i32 = 1;
-        for token in tokens.iter() {
-            println!("{}: {:?}", id, token);
-            id += 1;
+        if show_rpn {
+            let mut id: i32 = 1;
+            for token in tokens.iter() {
+                println!("{}: {:?}", id, token);
+                id += 1;
+            }
+            print!("\n");
         }
+        println!("{}", evaluate_rpn(tokens));
     }
 }
