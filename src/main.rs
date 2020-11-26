@@ -20,6 +20,16 @@ impl Operator {
         }
     }
 
+    fn is_left_associative(self) -> bool {
+        match self {
+            Operator::ADD => true,
+            Operator::SUB => true,
+            Operator::MUL => true,
+            Operator::DIV => true,
+            Operator::EXP => false
+        }
+    }
+
     fn display(self) -> String {
         match self {
             Operator::ADD => "+",
@@ -91,15 +101,13 @@ fn shunting_yard(tokens: Vec<Token>) -> VecDeque<Token> {
     for token in tokens.iter() {
         match token {
             Token::NUM(_) => queue.push_back(token.clone()),
-            Token::OPE(x) => {
-                loop {
-                    if let Some(v) = stack.last() {
-                        if let Token::OPE(y) = v {
-                            if y.clone().precedence() > x.clone().precedence() || (y.clone().precedence() == x.clone().precedence() && x.clone() != Operator::EXP) {
-                                queue.push_back(stack.pop().unwrap());
-                            } else {
-                                break;
-                            }
+            Token::OPE(op1) => {
+                while let Some(token) = stack.last() {
+                    if let Token::OPE(op2) = token {
+                        let op2_prec: u8 = op2.clone().precedence();
+                        let op1_prec: u8 = op1.clone().precedence();
+                        if op2_prec > op1_prec || (op2_prec == op1_prec && !op1.clone().is_left_associative()) {
+                            queue.push_back(stack.pop().unwrap());
                         } else {
                             break;
                         }
