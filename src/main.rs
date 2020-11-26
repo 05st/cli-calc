@@ -127,11 +127,11 @@ fn evaluate_rpn(tokens: VecDeque<Token>) -> f64 {
         match token {
             Token::NUM(x) => num_stack.push(x.clone()),
             Token::OPE(x) => {
-                let a: f64 = num_stack.pop().unwrap();
                 let b: f64 = num_stack.pop().unwrap();
+                let a: f64 = num_stack.pop().unwrap();
                 match x {
                     Operator::ADD => num_stack.push(a + b),
-                    Operator::SUB => num_stack.push(b - a),
+                    Operator::SUB => num_stack.push(a - b),
                     Operator::MUL => num_stack.push(a * b),
                     Operator::DIV => num_stack.push(a / b),
                     Operator::EXP => num_stack.push(a.powf(b)),
