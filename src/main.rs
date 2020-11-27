@@ -106,7 +106,7 @@ fn shunting_yard(tokens: Vec<Token>) -> VecDeque<Token> {
                     if let Token::OPE(op2) = token {
                         let op2_prec: u8 = op2.clone().precedence();
                         let op1_prec: u8 = op1.clone().precedence();
-                        if op2_prec > op1_prec || (op2_prec == op1_prec && !op1.clone().is_left_associative()) {
+                        if op2_prec > op1_prec || (op2_prec == op1_prec && op1.clone().is_left_associative()) {
                             queue.push_back(stack.pop().unwrap());
                         } else {
                             break;
