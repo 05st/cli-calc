@@ -188,6 +188,18 @@ fn evaluate_ast(node: ASTNode) -> f64 {
                 "sqrt" => child.sqrt(),
                 "cbrt" => child.cbrt(),
                 "exp" => child.exp(),
+                "floor" => child.floor(),
+                "ceil" => child.ceil(),
+                "round" => child.round(),
+                "trunc" => child.trunc(),
+                "fract" => child.fract(),
+                "signum" => child.signum(),
+                "sinh" => child.sinh(),
+                "cosh" => child.cosh(),
+                "tanh" => child.tanh(),
+                "asinh" => child.asinh(),
+                "acosh" => child.acosh(),
+                "atanh" => child.atanh(),
                 _ => child
             }
         },
