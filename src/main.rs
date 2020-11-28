@@ -139,6 +139,25 @@ impl Parser {
     }
 }
 
+fn evaluate_ast(node: ASTNode) -> f64 {
+    match node {
+        ASTNode::NUM(x) => x,
+        ASTNode::BIN(x, y, z) => {
+            let left_node: f64 = evaluate_ast(*y);
+            let right_node: f64 = evaluate_ast(*z);
+            match x {
+                Operator::ADD => left_node + right_node,
+                Operator::SUB => left_node - right_node,
+                Operator::MUL => left_node * right_node,
+                Operator::DIV => left_node / right_node,
+                Operator::MOD => left_node % right_node,
+                Operator::EXP => left_node.powf(right_node)
+            }
+        },
+        _ => 0f64
+    }
+}
+
 fn main() {
     loop {
         print!(">> ");
@@ -150,7 +169,10 @@ fn main() {
         let lexer: Lexer = Lexer::new(input);
         let mut parser: Parser = Parser {lexer};
         match parser.parse_expr() {
-            Ok(n) => println!("{:?}", n),
+            Ok(n) => {
+                // println!("{:?}", n);
+                println!("{}", evaluate_ast(n));
+            },
             Err(m) => println!("{}", m)
         }
     }
