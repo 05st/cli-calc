@@ -63,7 +63,7 @@ impl Lexer {
 }
 
 #[derive(Debug)]
-enum ASTNode { NUM(f64), IDE(String), UNA(Operator, Box<ASTNode>), BIN(Operator, Box<ASTNode>, Box<ASTNode>) }
+enum ASTNode { NUM(f64), VAR(String), FUN(String, Box<ASTNode>), UNA(Operator, Box<ASTNode>), BIN(Operator, Box<ASTNode>, Box<ASTNode>) }
 
 struct Parser {
     lexer: Lexer
@@ -75,7 +75,16 @@ impl Parser {
 
         match token {
             Token::NUM(x) => Ok(ASTNode::NUM(x)),
-            Token::IDE(x) => Ok(ASTNode::IDE(x)),
+            Token::IDE(x) => {
+                if let Token::LPA = self.lexer.peek() {
+                    self.lexer.next_token();
+                    let expr: ASTNode = self.parse_expression()?;
+                    self.lexer.next_token(); // Consume RPA
+                    Ok(ASTNode::FUN(x, Box::new(expr)))
+                } else {
+                    Ok(ASTNode::VAR(x))
+                }
+            },
             Token::LPA => {
                 let expr: ASTNode = self.parse_expression()?;
                 self.lexer.next_token(); // Consume RPA
@@ -163,6 +172,23 @@ fn evaluate_ast(node: ASTNode) -> f64 {
             match x {
                 Operator::SUB => -child,
                 _ => child // ASTNode::UNA can only be Operator::ADD or Operator::SUB
+            }
+        }
+        ASTNode::FUN(x, y) => {
+            let child: f64 = evaluate_ast(*y);
+            match x.as_str() {
+                "abs" => child.abs(),
+                "sin" => child.sin(),
+                "cos" => child.sin(),
+                "tan" => child.tan(),
+                "asin" => child.asin(),
+                "acos" => child.acos(),
+                "atan" => child.atan(),
+                "ln" => child.ln(),
+                "sqrt" => child.sqrt(),
+                "cbrt" => child.cbrt(),
+                "exp" => child.exp(),
+                _ => child
             }
         }
         _ => 0f64
