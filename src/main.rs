@@ -1,4 +1,5 @@
 use std::io::{self, Write};
+use std::process;
 use std::collections::VecDeque;
 
 use colour::yellow;
@@ -169,6 +170,8 @@ fn evaluate_ast(node: ASTNode) -> f64 {
 }
 
 fn main() {
+    println!("cli-calc version 1.0.0\ntype :help for commands");
+
     let mut debug: bool = false;
 
     loop {
@@ -183,6 +186,8 @@ fn main() {
                 debug = !debug;
                 println!("debug = {}", debug);
             },
+            ":exit" => process::exit(0),
+            ":help" => println!(":help\n:debug\n:exit"),
             _ => {
                 let lexer: Lexer = Lexer::new(input);
                 let mut parser: Parser = Parser {lexer};
