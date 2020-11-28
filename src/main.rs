@@ -78,7 +78,7 @@ impl Lexer {
 }
 
 #[derive(Debug)]
-enum ASTNode { NUM(f64), IDE(String), MON(Operator, Box<ASTNode>), BIN(Operator, Box<ASTNode>, Box<ASTNode>) }
+enum ASTNode { NUM(f64), IDE(String), UNA(Operator, Box<ASTNode>), BIN(Operator, Box<ASTNode>, Box<ASTNode>) }
 
 struct Parser {
     lexer: Lexer
@@ -95,6 +95,12 @@ impl Parser {
                 let expr: ASTNode = self.parse_expr()?;
                 self.lexer.next_token(); // Consume RPA
                 Ok(expr)
+            },
+            Token::OPE(x) => {
+                match x {
+                    Operator::ADD | Operator::SUB => Ok(ASTNode::UNA(x, Box::new(self.parse_item()?))),
+                    _ => Err(String::from("Parse error"))
+                }
             },
             Token::EOF => {
                 println!("Encountered Token::EOF");
@@ -154,6 +160,13 @@ fn evaluate_ast(node: ASTNode) -> f64 {
                 Operator::EXP => left_node.powf(right_node)
             }
         },
+        ASTNode::UNA(x, y) => {
+            let child: f64 = evaluate_ast(*y);
+            match x {
+                Operator::SUB => -child,
+                _ => child // ASTNode::UNA can only be Operator::ADD or Operator::SUB
+            }
+        }
         _ => 0f64
     }
 }
@@ -170,7 +183,7 @@ fn main() {
         let mut parser: Parser = Parser {lexer};
         match parser.parse_expr() {
             Ok(n) => {
-                // println!("{:?}", n);
+                println!("{:?}", n);
                 println!("{}", evaluate_ast(n));
             },
             Err(m) => println!("{}", m)
