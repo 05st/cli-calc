@@ -1,28 +1,12 @@
-use std::io;
-use std::io::Write;
+use std::io::{self, Write};
 use std::collections::VecDeque;
+
+use colour::yellow;
 
 #[derive(Debug, Clone)]
 enum Token { NUM(f64), OPE(Operator), IDE(String), LPA, RPA, EOF }
 #[derive(Debug, Clone)]
 enum Operator { ADD, SUB, MUL, DIV, MOD, EXP }
-
-impl Operator {
-    fn precedence(self) -> u8 {
-        match self {
-            Operator::ADD | Operator::SUB => 1,
-            Operator::MUL | Operator::DIV | Operator::MOD => 2,
-            Operator::EXP => 3
-        }
-    }
-
-    fn is_left_associative(self) -> bool {
-        match self {
-            Operator::ADD | Operator::SUB | Operator::MUL | Operator::DIV | Operator::MOD => true,
-            Operator::EXP => false
-        }
-    }
-}
 
 struct Lexer {
     tokens: VecDeque<Token>
@@ -92,7 +76,7 @@ impl Parser {
             Token::NUM(x) => Ok(ASTNode::NUM(x)),
             Token::IDE(x) => Ok(ASTNode::IDE(x)),
             Token::LPA => {
-                let expr: ASTNode = self.parse_expr()?;
+                let expr: ASTNode = self.parse_expression()?;
                 self.lexer.next_token(); // Consume RPA
                 Ok(expr)
             },
@@ -110,24 +94,37 @@ impl Parser {
         }
     }
 
-    fn parse_term(&mut self) -> Result<ASTNode, String> {
+    fn parse_factor(&mut self) -> Result<ASTNode, String> {
         let mut item_node: ASTNode = self.parse_item()?;
+        while let Token::OPE(op) = self.lexer.peek() {
+            if let Operator::EXP = op {
+                self.lexer.next_token();
+                item_node = ASTNode::BIN(op, Box::new(item_node), Box::new(self.parse_factor()?));
+            } else {
+                break;
+            }
+        }
+        Ok(item_node)
+    }
+
+    fn parse_term(&mut self) -> Result<ASTNode, String> {
+        let mut factor_node: ASTNode = self.parse_factor()?;
 
         while let Token::OPE(op_peek) = self.lexer.peek() {
             match op_peek {
                 Operator::MUL | Operator::DIV | Operator::MOD => {
                     if let Token::OPE(op) = self.lexer.next_token() {
-                        item_node = ASTNode::BIN(op, Box::new(item_node), Box::new(self.parse_item()?));
+                        factor_node = ASTNode::BIN(op, Box::new(factor_node), Box::new(self.parse_factor()?));
                     }
                 },
                 _ => break
             }
         }
 
-        Ok(item_node)
+        Ok(factor_node)
     }
 
-    fn parse_expr(&mut self) -> Result<ASTNode, String> {
+    fn parse_expression(&mut self) -> Result<ASTNode, String> {
         let mut term_node: ASTNode = self.parse_term()?;
 
         while let Token::OPE(op_peek) = self.lexer.peek() {
@@ -172,21 +169,31 @@ fn evaluate_ast(node: ASTNode) -> f64 {
 }
 
 fn main() {
+    let mut debug: bool = false;
+
     loop {
-        print!(">> ");
+        yellow!(">> "); // print!() yellow
         io::stdout().flush().unwrap();
 
         let mut input: String = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read input");
 
-        let lexer: Lexer = Lexer::new(input);
-        let mut parser: Parser = Parser {lexer};
-        match parser.parse_expr() {
-            Ok(n) => {
-                println!("{:?}", n);
-                println!("{}", evaluate_ast(n));
+        match input.trim() {
+            ":debug" => {
+                debug = !debug;
+                println!("debug = {}", debug);
             },
-            Err(m) => println!("{}", m)
+            _ => {
+                let lexer: Lexer = Lexer::new(input);
+                let mut parser: Parser = Parser {lexer};
+                match parser.parse_expression() {
+                    Ok(n) => {
+                        if debug { println!("{:?}", n); }
+                        println!("{}", evaluate_ast(n));
+                    },
+                    Err(m) => println!("{}", m)
+                }
+            }
         }
     }
 }
