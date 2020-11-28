@@ -173,7 +173,7 @@ fn evaluate_ast(node: ASTNode) -> f64 {
                 Operator::SUB => -child,
                 _ => child // ASTNode::UNA can only be Operator::ADD or Operator::SUB
             }
-        }
+        },
         ASTNode::FUN(x, y) => {
             let child: f64 = evaluate_ast(*y);
             match x.as_str() {
@@ -190,7 +190,16 @@ fn evaluate_ast(node: ASTNode) -> f64 {
                 "exp" => child.exp(),
                 _ => child
             }
-        }
+        },
+        ASTNode::VAR(x) => {
+            match x.as_str() {
+                "pi" => std::f64::consts::PI,
+                "e" => std::f64::consts::E,
+                "tau" => std::f64::consts::TAU,
+                "phi" => 1.6180339887498948482045868343656381f64,
+                _ => 0f64
+            }
+        },
         _ => 0f64
     }
 }
