@@ -1,6 +1,14 @@
 use crate::lexer::*;
 use crate::parser::*;
 
+fn factorial(num: f64) -> f64 {
+    let mut result: f64 = 1f64;
+    for n in 2..=(num as i64) {
+        result *= n as f64;
+    }
+    result
+}
+
 pub fn evaluate_ast(node: ASTNode) -> f64 {
     match node {
         ASTNode::NUM(x) => x,
@@ -41,6 +49,7 @@ pub fn evaluate_ast(node: ASTNode) -> f64 {
                 "ceil" => args[0].ceil(),
                 "round" => args[0].round(),
                 "trunc" => args[0].trunc(),
+                "factorial" => factorial(args[0]),
                 "fract" => args[0].fract(),
                 "sign" => args[0].signum(),
                 "sinh" => args[0].sinh(),

@@ -30,7 +30,7 @@ fn main() {
             },
             ":exit" => process::exit(0),
             ":help" => println!(":help\n:funcs\n:debug\n:exit"),
-            ":funcs" => println!("abs(x)\nacos(x)\nacosh(x)\nasin(x)\nasinh(x)\natan(x)\natanh(x)\nceil(x)\ncbrt(x)\ncos(x)\ncosh(x)\ndeg(x)\nexp(x)\nfloor(x)\nfract(x)\nhypot(x, y)\nln(x)\nlog(x)\nlogn(base, x)\nmax(x, y)\nmin(x, y)\npow(x, exponent)\nrad(x)\nround(x)\nsign(x)\nsin(x)\nsinh(x)\nsqrt(x)\nsum(...)\nrad(x)\nroot(root, x)\ntan(x)\ntanh(x)\ntrunc(x)"),
+            ":funcs" => println!("abs(x)\nacos(x)\nacosh(x)\nasin(x)\nasinh(x)\natan(x)\natanh(x)\nceil(x)\ncbrt(x)\ncos(x)\ncosh(x)\ndeg(x)\nexp(x)\nfactorial(x)\nfloor(x)\nfract(x)\nhypot(x, y)\nln(x)\nlog(x)\nlogn(base, x)\nmax(x, y)\nmin(x, y)\npow(x, exponent)\nrad(x)\nround(x)\nsign(x)\nsin(x)\nsinh(x)\nsqrt(x)\nsum(...)\nrad(x)\nroot(root, x)\ntan(x)\ntanh(x)\ntrunc(x)"),
             _ => {
                 let lexer: Lexer = Lexer::new(input);
                 let mut parser: Parser = Parser::new(lexer);
