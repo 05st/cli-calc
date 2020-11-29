@@ -74,6 +74,6 @@ impl Lexer {
             }
         }
 
-        return Lexer { tokens };
+        Lexer { tokens }
     }
 }

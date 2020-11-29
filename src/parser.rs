@@ -4,7 +4,7 @@ use crate::lexer::*;
 pub enum ASTNode {
     NUM(f64),
     VAR(String),
-    FUN(String, Vec<Box<ASTNode>>),
+    FUN(String, Vec<ASTNode>),
     UNA(Operator, Box<ASTNode>),
     BIN(Operator, Box<ASTNode>, Box<ASTNode>),
 }
@@ -21,10 +21,10 @@ impl Parser {
             Token::NUM(x) => Ok(ASTNode::NUM(x)),
             Token::IDE(x) => {
                 if let Token::LPA = self.lexer.peek() {
-                    let mut args: Vec<Box<ASTNode>> = Vec::new();
+                    let mut args: Vec<ASTNode> = Vec::new();
                     self.lexer.next_token(); // Consume LPA
                     loop {
-                        args.push(Box::new(self.parse_expression()?));
+                        args.push(self.parse_expression()?);
                         if let Token::COM = self.lexer.peek() {
                             self.lexer.next_token(); // Consume COM
                         } else {

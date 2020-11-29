@@ -32,7 +32,7 @@ pub fn evaluate_ast(node: ASTNode) -> f64 {
             }
         }
         ASTNode::FUN(x, y) => {
-            let args: Vec<f64> = y.into_iter().map(|a| evaluate_ast(*a)).collect();
+            let args: Vec<f64> = y.into_iter().map(evaluate_ast).collect();
             match x.as_str() {
                 "abs" => args[0].abs(),
                 "sin" => args[0].sin(),
@@ -74,7 +74,7 @@ pub fn evaluate_ast(node: ASTNode) -> f64 {
             "pi" => std::f64::consts::PI,
             "e" => std::f64::consts::E,
             "tau" => std::f64::consts::TAU,
-            "phi" => 1.6180339887498948482045868343656381f64,
+            "phi" => 1.618033988749895_f64,
             _ => 0f64,
         },
         // _ => 0f64
