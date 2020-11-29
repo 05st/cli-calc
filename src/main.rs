@@ -1,10 +1,10 @@
+mod interpreter;
 mod lexer;
 mod parser;
-mod interpreter;
 
+use interpreter::*;
 use lexer::*;
 use parser::*;
-use interpreter::*;
 
 use std::io::{self, Write};
 use std::process;
@@ -21,7 +21,9 @@ fn main() {
         io::stdout().flush().unwrap();
 
         let mut input: String = String::new();
-        io::stdin().read_line(&mut input).expect("Failed to read input");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read input");
 
         match input.trim() {
             ":debug" => {

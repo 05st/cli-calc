@@ -21,16 +21,16 @@ pub fn evaluate_ast(node: ASTNode) -> f64 {
                 Operator::MUL => left_node * right_node,
                 Operator::DIV => left_node / right_node,
                 Operator::MOD => left_node % right_node,
-                Operator::EXP => left_node.powf(right_node)
+                Operator::EXP => left_node.powf(right_node),
             }
-        },
+        }
         ASTNode::UNA(x, y) => {
             let child: f64 = evaluate_ast(*y);
             match x {
                 Operator::SUB => -child,
-                _ => child // ASTNode::UNA can only be Operator::ADD or Operator::SUB
+                _ => child, // ASTNode::UNA can only be Operator::ADD or Operator::SUB
             }
-        },
+        }
         ASTNode::FUN(x, y) => {
             let args: Vec<f64> = y.into_iter().map(|a| evaluate_ast(*a)).collect();
             match x.as_str() {
@@ -67,17 +67,15 @@ pub fn evaluate_ast(node: ASTNode) -> f64 {
                 "root" => args[1].powf(1f64 / args[0]),
                 "pow" => args[0].powf(args[1]),
                 "sum" => args.into_iter().sum(),
-                _ => args[0]
+                _ => args[0],
             }
-        },
-        ASTNode::VAR(x) => {
-            match x.as_str() {
-                "pi" => std::f64::consts::PI,
-                "e" => std::f64::consts::E,
-                "tau" => std::f64::consts::TAU,
-                "phi" => 1.6180339887498948482045868343656381f64,
-                _ => 0f64
-            }
+        }
+        ASTNode::VAR(x) => match x.as_str() {
+            "pi" => std::f64::consts::PI,
+            "e" => std::f64::consts::E,
+            "tau" => std::f64::consts::TAU,
+            "phi" => 1.6180339887498948482045868343656381f64,
+            _ => 0f64,
         },
         // _ => 0f64
     }

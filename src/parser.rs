@@ -1,10 +1,16 @@
 use crate::lexer::*;
 
 #[derive(Debug)]
-pub enum ASTNode { NUM(f64), VAR(String), FUN(String, Vec<Box<ASTNode>>), UNA(Operator, Box<ASTNode>), BIN(Operator, Box<ASTNode>, Box<ASTNode>) }
+pub enum ASTNode {
+    NUM(f64),
+    VAR(String),
+    FUN(String, Vec<Box<ASTNode>>),
+    UNA(Operator, Box<ASTNode>),
+    BIN(Operator, Box<ASTNode>, Box<ASTNode>),
+}
 
 pub struct Parser {
-    lexer: Lexer
+    lexer: Lexer,
 }
 
 impl Parser {
@@ -30,23 +36,21 @@ impl Parser {
                 } else {
                     Ok(ASTNode::VAR(x))
                 }
-            },
+            }
             Token::LPA => {
                 let expr: ASTNode = self.parse_expression()?;
                 self.lexer.next_token(); // Consume RPA
                 Ok(expr)
-            },
-            Token::OPE(x) => {
-                match x {
-                    Operator::ADD | Operator::SUB => Ok(ASTNode::UNA(x, Box::new(self.parse_item()?))),
-                    _ => Err(String::from("Parse error"))
-                }
+            }
+            Token::OPE(x) => match x {
+                Operator::ADD | Operator::SUB => Ok(ASTNode::UNA(x, Box::new(self.parse_item()?))),
+                _ => Err(String::from("Parse error")),
             },
             Token::EOF => {
                 println!("Encountered Token::EOF");
                 Err(String::from("Parse error"))
-            },
-            _ => Err(String::from("Parse error"))
+            }
+            _ => Err(String::from("Parse error")),
         }
     }
 
@@ -70,10 +74,11 @@ impl Parser {
             match op_peek {
                 Operator::MUL | Operator::DIV | Operator::MOD => {
                     if let Token::OPE(op) = self.lexer.next_token() {
-                        factor_node = ASTNode::BIN(op, Box::new(factor_node), Box::new(self.parse_factor()?));
+                        factor_node =
+                            ASTNode::BIN(op, Box::new(factor_node), Box::new(self.parse_factor()?));
                     }
-                },
-                _ => break
+                }
+                _ => break,
             }
         }
 
@@ -87,10 +92,11 @@ impl Parser {
             match op_peek {
                 Operator::ADD | Operator::SUB => {
                     if let Token::OPE(op) = self.lexer.next_token() {
-                        term_node = ASTNode::BIN(op, Box::new(term_node), Box::new(self.parse_term()?));
+                        term_node =
+                            ASTNode::BIN(op, Box::new(term_node), Box::new(self.parse_term()?));
                     }
-                },
-                _ => break
+                }
+                _ => break,
             }
         }
 
@@ -98,6 +104,6 @@ impl Parser {
     }
 
     pub fn new(lexer: Lexer) -> Parser {
-        Parser {lexer}
+        Parser { lexer }
     }
 }

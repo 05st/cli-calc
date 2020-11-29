@@ -1,12 +1,27 @@
 use std::collections::VecDeque;
 
 #[derive(Debug, Clone)]
-pub enum Token { NUM(f64), OPE(Operator), IDE(String), LPA, RPA, COM, EOF }
+pub enum Token {
+    NUM(f64),
+    OPE(Operator),
+    IDE(String),
+    LPA,
+    RPA,
+    COM,
+    EOF,
+}
 #[derive(Debug, Clone)]
-pub enum Operator { ADD, SUB, MUL, DIV, MOD, EXP }
+pub enum Operator {
+    ADD,
+    SUB,
+    MUL,
+    DIV,
+    MOD,
+    EXP,
+}
 
 pub struct Lexer {
-    tokens: VecDeque<Token>
+    tokens: VecDeque<Token>,
 }
 
 impl Lexer {
@@ -29,7 +44,11 @@ impl Lexer {
                 num_buffer += &character.to_string();
                 continue;
             } else if !num_buffer.is_empty() {
-                tokens.push_front(Token::NUM(num_buffer.parse::<f64>().expect("Failed to parse String to f64")));
+                tokens.push_front(Token::NUM(
+                    num_buffer
+                        .parse::<f64>()
+                        .expect("Failed to parse String to f64"),
+                ));
                 num_buffer.clear();
             }
 
@@ -51,10 +70,10 @@ impl Lexer {
                 '(' => tokens.push_front(Token::LPA),
                 ')' => tokens.push_front(Token::RPA),
                 ',' => tokens.push_front(Token::COM),
-                _ => ()
-            } 
+                _ => (),
+            }
         }
 
-        return Lexer {tokens};
+        return Lexer { tokens };
     }
 }
