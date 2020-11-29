@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 #[derive(Debug, Clone)]
-pub enum Token { NUM(f64), OPE(Operator), IDE(String), LPA, RPA, EOF }
+pub enum Token { NUM(f64), OPE(Operator), IDE(String), LPA, RPA, COM, EOF }
 #[derive(Debug, Clone)]
 pub enum Operator { ADD, SUB, MUL, DIV, MOD, EXP }
 
@@ -50,6 +50,7 @@ impl Lexer {
                 '^' => tokens.push_front(Token::OPE(Operator::EXP)),
                 '(' => tokens.push_front(Token::LPA),
                 ')' => tokens.push_front(Token::RPA),
+                ',' => tokens.push_front(Token::COM),
                 _ => ()
             } 
         }

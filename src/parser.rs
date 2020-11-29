@@ -1,7 +1,7 @@
 use crate::lexer::*;
 
 #[derive(Debug)]
-pub enum ASTNode { NUM(f64), VAR(String), FUN(String, Box<ASTNode>), UNA(Operator, Box<ASTNode>), BIN(Operator, Box<ASTNode>, Box<ASTNode>) }
+pub enum ASTNode { NUM(f64), VAR(String), FUN(String, Vec<Box<ASTNode>>), UNA(Operator, Box<ASTNode>), BIN(Operator, Box<ASTNode>, Box<ASTNode>) }
 
 pub struct Parser {
     lexer: Lexer
@@ -15,10 +15,18 @@ impl Parser {
             Token::NUM(x) => Ok(ASTNode::NUM(x)),
             Token::IDE(x) => {
                 if let Token::LPA = self.lexer.peek() {
-                    self.lexer.next_token();
-                    let expr: ASTNode = self.parse_expression()?;
+                    let mut args: Vec<Box<ASTNode>> = Vec::new();
+                    self.lexer.next_token(); // Consume LPA
+                    loop {
+                        args.push(Box::new(self.parse_expression()?));
+                        if let Token::COM = self.lexer.peek() {
+                            self.lexer.next_token(); // Consume COM
+                        } else {
+                            break;
+                        }
+                    }
                     self.lexer.next_token(); // Consume RPA
-                    Ok(ASTNode::FUN(x, Box::new(expr)))
+                    Ok(ASTNode::FUN(x, args))
                 } else {
                     Ok(ASTNode::VAR(x))
                 }
