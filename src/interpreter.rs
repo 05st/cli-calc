@@ -55,6 +55,9 @@ pub fn evaluate_ast(node: ASTNode) -> f64 {
                 "min" => args[0].min(args[1]),
                 "deg" => args[0].to_degrees(),
                 "rad" => args[0].to_radians(),
+                "root" => args[1].powf(1f64 / args[0]),
+                "pow" => args[0].powf(args[1]),
+                "sum" => args.into_iter().sum(),
                 _ => args[0]
             }
         },
