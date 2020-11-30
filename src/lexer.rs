@@ -46,15 +46,7 @@ impl Lexer {
         let mut ide_buffer: String = String::new();
 
         for (index, character) in text.chars().enumerate() {
-            if character.is_digit(10) || character == '.' {
-                num_buffer += &character.to_string();
-                continue;
-            } else if !num_buffer.is_empty() {
-                tokens.push_front(Token::Number(num_buffer.parse::<f64>().expect("Failed to parse String to f64")));
-                num_buffer.clear();
-            }
-
-            if character.is_alphabetic() {
+            if (character.is_alphabetic() && ide_buffer.is_empty()) || (character.is_alphanumeric() && !ide_buffer.is_empty()) {
                 ide_buffer += &character.to_string();
                 continue;
             } else if !ide_buffer.is_empty() {
@@ -64,6 +56,14 @@ impl Lexer {
                     _ => tokens.push_front(Token::Identifier(ide_buffer.clone())),
                 }
                 ide_buffer.clear();
+            }
+
+            if character.is_digit(10) || character == '.' {
+                num_buffer += &character.to_string();
+                continue;
+            } else if !num_buffer.is_empty() {
+                tokens.push_front(Token::Number(num_buffer.parse::<f64>().expect("Failed to parse String to f64")));
+                num_buffer.clear();
             }
 
             let next_character = text.chars().nth(index + 1).unwrap_or('\0'); // Just default to a character we ignore

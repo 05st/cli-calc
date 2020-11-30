@@ -33,8 +33,54 @@ fn main() {
                 println!("debug = {}", debug);
             },
             ":exit" => process::exit(0),
-            ":help" => println!(":help\n:funcs\n:debug\n:exit"),
-            ":funcs" => println!("abs(x)\nacos(x)\nacosh(x)\nasin(x)\nasinh(x)\natan(x)\natanh(x)\nceil(x)\ncbrt(x)\ncos(x)\ncosh(x)\ndeg(x)\nexp(x)\nfactorial(x)\nfloor(x)\nfract(x)\nhypot(x, y)\nln(x)\nlog(x)\nlogn(base, x)\nmax(x, y)\nmin(x, y)\npow(x, exponent)\nrad(x)\nround(x)\nsign(x)\nsin(x)\nsinh(x)\nsqrt(x)\nsum(...)\nrad(x)\nroot(root, x)\ntan(x)\ntanh(x)\ntrunc(x)"),
+            ":help" => {
+                println!("\
+                    :help\n\
+                    :funcs\n\
+                    :debug\n\
+                    :exit\
+                ")
+            }
+            ":funcs" =>{
+                println!("\
+                    abs(x)\n\
+                    acos(x)\n\
+                    acosh(x)\n\
+                    asin(x)\n\
+                    asinh(x)\n\
+                    atan(x)\n\
+                    atan2(x, y)\n\
+                    atanh(x)\n\
+                    ceil(x)\n\
+                    ncbrt(x)\n\
+                    cos(x)\n\
+                    cosh(x)\n\
+                    deg(x)\n\
+                    exp(x)\n\
+                    fact(x)\n\
+                    floor(x)\n\
+                    fract(x)\n\
+                    hypot(x, y)\n\
+                    ln(x)\n\
+                    log(x)\n\
+                    logn(base, x)\n\
+                    max(x, y)\n\
+                    min(x, y)\n\
+                    pow(x, exponent)\n\
+                    rad(x)\n\
+                    round(x)\n\
+                    sign(x)\n\
+                    sin(x)\n\
+                    sinh(x)\n\
+                    sqrt(x)\n\
+                    sum(...)\n\
+                    rad(x)\n\
+                    root(root, x)\n\
+                    tan(x)\n\
+                    tanh(x)\n\
+                    trunc(x)\
+                ")
+            }
             _ => {
                 let lexer: Lexer = Lexer::new(input);
                 let mut parser: Parser = Parser::new(lexer);
