@@ -3,6 +3,7 @@ use crate::lexer::*;
 #[derive(Debug)]
 pub enum ASTNode {
     NUM(f64),
+    BOOL(bool),
     VAR(String),
     FUN(String, Vec<ASTNode>),
     UNA(Operator, Box<ASTNode>),
@@ -19,6 +20,7 @@ impl Parser {
 
         match token {
             Token::NUM(x) => Ok(ASTNode::NUM(x)),
+            Token::BOOL(x) => Ok(ASTNode::BOOL(x)),
             Token::IDE(x) => {
                 if let Token::LPA = self.lexer.peek() {
                     let mut args: Vec<ASTNode> = Vec::new();
@@ -43,7 +45,9 @@ impl Parser {
                 Ok(expr)
             }
             Token::OPE(x) => match x {
-                Operator::ADD | Operator::SUB => Ok(ASTNode::UNA(x, Box::new(self.parse_item()?))),
+                Operator::ADD | Operator::SUB | Operator::EQ | Operator::NEQ | Operator::AND => {
+                    Ok(ASTNode::UNA(x, Box::new(self.parse_item()?)))
+                }
                 _ => Err(String::from("Parse error")),
             },
             Token::EOF => {
@@ -90,7 +94,7 @@ impl Parser {
 
         while let Token::OPE(op_peek) = self.lexer.peek() {
             match op_peek {
-                Operator::ADD | Operator::SUB => {
+                Operator::ADD | Operator::SUB | Operator::EQ | Operator::NEQ | Operator::AND => {
                     if let Token::OPE(op) = self.lexer.next_token() {
                         term_node =
                             ASTNode::BIN(op, Box::new(term_node), Box::new(self.parse_term()?));

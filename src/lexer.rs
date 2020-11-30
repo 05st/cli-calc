@@ -5,6 +5,7 @@ pub enum Token {
     NUM(f64),
     OPE(Operator),
     IDE(String),
+    BOOL(bool),
     LPA,
     RPA,
     COM,
@@ -18,6 +19,9 @@ pub enum Operator {
     DIV,
     MOD,
     EXP,
+    NEQ,
+    EQ,
+    AND,
 }
 
 pub struct Lexer {
@@ -40,6 +44,17 @@ impl Lexer {
         let mut ide_buffer: String = String::new();
 
         for (index, character) in text.chars().enumerate() {
+            match ide_buffer.as_str() {
+                "true" => {
+                    tokens.push_front(Token::BOOL(true));
+                    ide_buffer.clear();
+                }
+                "false" => {
+                    tokens.push_front(Token::BOOL(false));
+                    ide_buffer.clear();
+                }
+                _ => {}
+            }
             if character.is_digit(10) || character == '.' {
                 num_buffer += &character.to_string();
                 continue;
@@ -63,6 +78,15 @@ impl Lexer {
             let next_character = text.chars().nth(index + 1).unwrap_or('\0'); // Just default to a character we ignore
 
             match character {
+                '!' if next_character == '=' => {
+                    tokens.push_front(Token::OPE(Operator::NEQ));
+                }
+                '=' if next_character == '=' => {
+                    tokens.push_front(Token::OPE(Operator::EQ));
+                }
+                '&' if next_character == '&' => {
+                    tokens.push_front(Token::OPE(Operator::AND));
+                }
                 '+' => tokens.push_front(Token::OPE(Operator::ADD)),
                 '-' => tokens.push_front(Token::OPE(Operator::SUB)),
                 '*' => tokens.push_front(Token::OPE(Operator::MUL)),
