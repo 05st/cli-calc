@@ -7,17 +7,14 @@ use lexer::*;
 use parser::*;
 
 use std::{
-    io::{
-        self,
-        Write,
-    },
+    io::{self, Write},
     process,
 };
 
 use colour::yellow;
 
 fn main() {
-    println!("cli-calc version 1.0.0\ntype :help for commands");
+    println!("cli-calc version 1.0\ntype :help for commands");
 
     let mut debug: bool = false;
 
@@ -41,10 +38,19 @@ fn main() {
             _ => {
                 let lexer: Lexer = Lexer::new(input);
                 let mut parser: Parser = Parser::new(lexer);
-                match parser.parse_expression() {
+                match parser.parse_from_top() {
                     Ok(n) => {
                         if debug { println!("{:?}", n); }
-                        println!("{:?}", evaluate_ast(n));
+                        let result = evaluate_ast(n);
+                        match result {
+                            Ok(r) => {
+                                match r {
+                                    InterpreterResult::Number(value) => println!("{}", value),
+                                    InterpreterResult::Bool(value) => println!("{}", value)
+                                }
+                            }
+                            Err(m) => println!("{}", m)
+                        }
                     },
                     Err(m) => println!("{}", m)
                 }

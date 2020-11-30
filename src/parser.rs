@@ -1,13 +1,13 @@
 use crate::lexer::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ASTNode {
-    NUM(f64),
-    BOOL(bool),
-    VAR(String),
-    FUN(String, Vec<ASTNode>),
-    UNA(Operator, Box<ASTNode>),
-    BIN(Operator, Box<ASTNode>, Box<ASTNode>),
+    Number(f64),
+    Bool(bool),
+    Variable(String),
+    Function(String, Vec<ASTNode>),
+    Unary(Operator, Box<ASTNode>),
+    Binary(Operator, Box<ASTNode>, Box<ASTNode>),
 }
 
 pub struct Parser {
@@ -19,35 +19,33 @@ impl Parser {
         let token: Token = self.lexer.next_token();
 
         match token {
-            Token::NUM(x) => Ok(ASTNode::NUM(x)),
-            Token::BOOL(x) => Ok(ASTNode::BOOL(x)),
-            Token::IDE(x) => {
-                if let Token::LPA = self.lexer.peek() {
+            Token::Number(x) => Ok(ASTNode::Number(x)),
+            Token::Bool(x) => Ok(ASTNode::Bool(x)),
+            Token::Identifier(x) => {
+                if let Token::LeftParen = self.lexer.peek() {
                     let mut args: Vec<ASTNode> = Vec::new();
-                    self.lexer.next_token(); // Consume LPA
+                    self.lexer.next_token(); // Consume LeftParen
                     loop {
-                        args.push(self.parse_expression()?);
-                        if let Token::COM = self.lexer.peek() {
-                            self.lexer.next_token(); // Consume COM
+                        args.push(self.parse_from_top()?);
+                        if let Token::Comma = self.lexer.peek() {
+                            self.lexer.next_token(); // Consume Comma
                         } else {
                             break;
                         }
                     }
                     self.lexer.next_token(); // Consume RPA
-                    Ok(ASTNode::FUN(x, args))
+                    Ok(ASTNode::Function(x, args))
                 } else {
-                    Ok(ASTNode::VAR(x))
+                    Ok(ASTNode::Variable(x))
                 }
             }
-            Token::LPA => {
-                let expr: ASTNode = self.parse_expression()?;
+            Token::LeftParen => {
+                let expr: ASTNode = self.parse_from_top()?;
                 self.lexer.next_token(); // Consume RPA
                 Ok(expr)
             }
-            Token::OPE(x) => match x {
-                Operator::ADD | Operator::SUB | Operator::EQ | Operator::NEQ | Operator::AND => {
-                    Ok(ASTNode::UNA(x, Box::new(self.parse_item()?)))
-                }
+            Token::Operator(x) => match x {
+                Operator::Add | Operator::Subtract | Operator::Not => Ok(ASTNode::Unary(x, Box::new(self.parse_item()?))),
                 _ => Err(String::from("Parse error")),
             },
             Token::EOF => {
@@ -60,10 +58,10 @@ impl Parser {
 
     fn parse_factor(&mut self) -> Result<ASTNode, String> {
         let mut item_node: ASTNode = self.parse_item()?;
-        while let Token::OPE(op) = self.lexer.peek() {
-            if let Operator::EXP = op {
+        while let Token::Operator(op) = self.lexer.peek() {
+            if let Operator::Exponent = op {
                 self.lexer.next_token();
-                item_node = ASTNode::BIN(op, Box::new(item_node), Box::new(self.parse_factor()?));
+                item_node = ASTNode::Binary(op, Box::new(item_node), Box::new(self.parse_factor()?));
             } else {
                 break;
             }
@@ -74,12 +72,11 @@ impl Parser {
     fn parse_term(&mut self) -> Result<ASTNode, String> {
         let mut factor_node: ASTNode = self.parse_factor()?;
 
-        while let Token::OPE(op_peek) = self.lexer.peek() {
+        while let Token::Operator(op_peek) = self.lexer.peek() {
             match op_peek {
-                Operator::MUL | Operator::DIV | Operator::MOD => {
-                    if let Token::OPE(op) = self.lexer.next_token() {
-                        factor_node =
-                            ASTNode::BIN(op, Box::new(factor_node), Box::new(self.parse_factor()?));
+                Operator::Multiply | Operator::Divide | Operator::Modulo => {
+                    if let Token::Operator(op) = self.lexer.next_token() {
+                        factor_node = ASTNode::Binary(op, Box::new(factor_node), Box::new(self.parse_factor()?));
                     }
                 }
                 _ => break,
@@ -92,12 +89,11 @@ impl Parser {
     pub fn parse_expression(&mut self) -> Result<ASTNode, String> {
         let mut term_node: ASTNode = self.parse_term()?;
 
-        while let Token::OPE(op_peek) = self.lexer.peek() {
+        while let Token::Operator(op_peek) = self.lexer.peek() {
             match op_peek {
-                Operator::ADD | Operator::SUB | Operator::EQ | Operator::NEQ | Operator::AND => {
-                    if let Token::OPE(op) = self.lexer.next_token() {
-                        term_node =
-                            ASTNode::BIN(op, Box::new(term_node), Box::new(self.parse_term()?));
+                Operator::Add | Operator::Subtract => {
+                    if let Token::Operator(op) = self.lexer.next_token() {
+                        term_node = ASTNode::Binary(op, Box::new(term_node), Box::new(self.parse_term()?));
                     }
                 }
                 _ => break,
@@ -105,6 +101,61 @@ impl Parser {
         }
 
         Ok(term_node)
+    }
+
+    pub fn parse_equality(&mut self) -> Result<ASTNode, String> {
+        let mut expr_node: ASTNode = self.parse_expression()?;
+
+        while let Token::Operator(op_peek) = self.lexer.peek() {
+            match op_peek {
+                Operator::Equal | Operator::NotEqual => {
+                    if let Token::Operator(op) = self.lexer.next_token() {
+                        expr_node = ASTNode::Binary (op, Box::new(expr_node), Box::new(self.parse_expression()?));
+                    }
+                }
+                _ => break,
+            }
+        }
+
+        Ok(expr_node)
+    }
+
+    pub fn parse_logical_or(&mut self) -> Result<ASTNode, String> {
+        let mut equality_node: ASTNode = self.parse_equality()?;
+
+        while let Token::Operator(op_peek) = self.lexer.peek() {
+            match op_peek {
+                Operator::Or => {
+                    if let Token::Operator(op) = self.lexer.next_token() {
+                        equality_node = ASTNode::Binary(op, Box::new(equality_node), Box::new(self.parse_equality()?));
+                    }
+                }
+                _ => break,
+            }
+        }
+
+        Ok(equality_node)
+    }
+
+    pub fn parse_logical_and(&mut self) -> Result<ASTNode, String> {
+        let mut or_node: ASTNode = self.parse_logical_or()?;
+
+        while let Token::Operator(op_peek) = self.lexer.peek() {
+            match op_peek {
+                Operator::And => {
+                    if let Token::Operator(op) = self.lexer.next_token() {
+                        or_node = ASTNode::Binary(op, Box::new(or_node), Box::new(self.parse_equality()?));
+                    }
+                }
+                _ => break,
+            }
+        }
+
+        Ok(or_node)
+    }
+
+    pub fn parse_from_top(&mut self) -> Result<ASTNode, String> {
+        self.parse_logical_and()
     }
 
     pub fn new(lexer: Lexer) -> Parser {

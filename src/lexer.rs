@@ -2,26 +2,28 @@ use std::collections::VecDeque;
 
 #[derive(Debug, Clone)]
 pub enum Token {
-    NUM(f64),
-    OPE(Operator),
-    IDE(String),
-    BOOL(bool),
-    LPA,
-    RPA,
-    COM,
+    Number(f64),
+    Operator(Operator),
+    Identifier(String),
+    Bool(bool),
+    LeftParen,
+    RightParen,
+    Comma,
     EOF,
 }
 #[derive(Debug, Clone)]
 pub enum Operator {
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-    MOD,
-    EXP,
-    NEQ,
-    EQ,
-    AND,
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    Modulo,
+    Exponent,
+    NotEqual,
+    Equal,
+    And,
+    Or,
+    Not,
 }
 
 pub struct Lexer {
@@ -44,26 +46,11 @@ impl Lexer {
         let mut ide_buffer: String = String::new();
 
         for (index, character) in text.chars().enumerate() {
-            match ide_buffer.as_str() {
-                "true" => {
-                    tokens.push_front(Token::BOOL(true));
-                    ide_buffer.clear();
-                }
-                "false" => {
-                    tokens.push_front(Token::BOOL(false));
-                    ide_buffer.clear();
-                }
-                _ => {}
-            }
             if character.is_digit(10) || character == '.' {
                 num_buffer += &character.to_string();
                 continue;
             } else if !num_buffer.is_empty() {
-                tokens.push_front(Token::NUM(
-                    num_buffer
-                        .parse::<f64>()
-                        .expect("Failed to parse String to f64"),
-                ));
+                tokens.push_front(Token::Number(num_buffer.parse::<f64>().expect("Failed to parse String to f64")));
                 num_buffer.clear();
             }
 
@@ -71,31 +58,36 @@ impl Lexer {
                 ide_buffer += &character.to_string();
                 continue;
             } else if !ide_buffer.is_empty() {
-                tokens.push_front(Token::IDE(ide_buffer.clone()));
+                match ide_buffer.as_str() {
+                    "true" => tokens.push_front(Token::Bool(true)),
+                    "false" => tokens.push_front(Token::Bool(false)),
+                    _ => tokens.push_front(Token::Identifier(ide_buffer.clone())),
+                }
                 ide_buffer.clear();
             }
 
             let next_character = text.chars().nth(index + 1).unwrap_or('\0'); // Just default to a character we ignore
 
             match character {
-                '!' if next_character == '=' => {
-                    tokens.push_front(Token::OPE(Operator::NEQ));
+                '!' => {
+                    if next_character == '=' {
+                        tokens.push_front(Token::Operator(Operator::NotEqual));
+                    } else {
+                        tokens.push_front(Token::Operator(Operator::Not));
+                    }
                 }
-                '=' if next_character == '=' => {
-                    tokens.push_front(Token::OPE(Operator::EQ));
-                }
-                '&' if next_character == '&' => {
-                    tokens.push_front(Token::OPE(Operator::AND));
-                }
-                '+' => tokens.push_front(Token::OPE(Operator::ADD)),
-                '-' => tokens.push_front(Token::OPE(Operator::SUB)),
-                '*' => tokens.push_front(Token::OPE(Operator::MUL)),
-                '/' => tokens.push_front(Token::OPE(Operator::DIV)),
-                '%' => tokens.push_front(Token::OPE(Operator::MOD)),
-                '^' => tokens.push_front(Token::OPE(Operator::EXP)),
-                '(' => tokens.push_front(Token::LPA),
-                ')' => tokens.push_front(Token::RPA),
-                ',' => tokens.push_front(Token::COM),
+                '=' if next_character == '=' => tokens.push_front(Token::Operator(Operator::Equal)),
+                '&' if next_character == '&' => tokens.push_front(Token::Operator(Operator::And)),
+                '|' if next_character == '|' => tokens.push_front(Token::Operator(Operator::Or)),
+                '+' => tokens.push_front(Token::Operator(Operator::Add)),
+                '-' => tokens.push_front(Token::Operator(Operator::Subtract)),
+                '*' => tokens.push_front(Token::Operator(Operator::Multiply)),
+                '/' => tokens.push_front(Token::Operator(Operator::Divide)),
+                '%' => tokens.push_front(Token::Operator(Operator::Modulo)),
+                '^' => tokens.push_front(Token::Operator(Operator::Exponent)),
+                '(' => tokens.push_front(Token::LeftParen),
+                ')' => tokens.push_front(Token::RightParen),
+                ',' => tokens.push_front(Token::Comma),
                 _ => (),
             }
         }
