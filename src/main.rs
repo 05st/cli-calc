@@ -62,8 +62,9 @@ fn main() {
                     fract(x)\n\
                     hypot(x, y)\n\
                     ln(x)\n\
-                    log(x)\n\
-                    logn(base, x)\n\
+                    log10(x)\n\
+                    log2(x)\n\
+                    log(base, x)\n\
                     max(x, y)\n\
                     min(x, y)\n\
                     pow(x, exponent)\n\
