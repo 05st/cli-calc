@@ -6,8 +6,13 @@ use interpreter::*;
 use lexer::*;
 use parser::*;
 
-use std::io::{self, Write};
-use std::process;
+use std::{
+    io::{
+        self,
+        Write,
+    },
+    process,
+};
 
 use colour::yellow;
 
@@ -39,7 +44,7 @@ fn main() {
                 match parser.parse_expression() {
                     Ok(n) => {
                         if debug { println!("{:?}", n); }
-                        println!("{}", evaluate_ast(n));
+                        println!("{:?}", evaluate_ast(n));
                     },
                     Err(m) => println!("{}", m)
                 }
