@@ -1,5 +1,4 @@
-use crate::lexer::*;
-use crate::parser::*;
+use crate::{lexer::*, parser::*};
 
 fn factorial(num: f64) -> f64 {
     let mut result: f64 = 1f64;

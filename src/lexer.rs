@@ -39,7 +39,7 @@ impl Lexer {
         let mut num_buffer: String = String::new();
         let mut ide_buffer: String = String::new();
 
-        for character in text.chars() {
+        for (index, character) in text.chars().enumerate() {
             if character.is_digit(10) || character == '.' {
                 num_buffer += &character.to_string();
                 continue;
@@ -59,6 +59,8 @@ impl Lexer {
                 tokens.push_front(Token::IDE(ide_buffer.clone()));
                 ide_buffer.clear();
             }
+
+            let next_character = text.chars().nth(index + 1).unwrap_or('\0'); // Just default to a character we ignore
 
             match character {
                 '+' => tokens.push_front(Token::OPE(Operator::ADD)),
