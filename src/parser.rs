@@ -44,10 +44,6 @@ impl Parser {
                 self.lexer.next_token(); // Consume RPA
                 Ok(expr)
             }
-            Token::Operator(x) => match x {
-                Operator::Add | Operator::Subtract | Operator::Not => Ok(ASTNode::Unary(x, Box::new(self.parse_item()?))),
-                _ => Err(String::from("Parse error")),
-            },
             Token::EOF => {
                 println!("Encountered Token::EOF");
                 Err(String::from("Parse error"))
@@ -57,7 +53,18 @@ impl Parser {
     }
 
     fn parse_factor(&mut self) -> Result<ASTNode, String> {
-        let mut item_node: ASTNode = self.parse_item()?;
+        let mut item_node: ASTNode = if let Token::Operator(op) = self.lexer.peek() {
+            match op {
+                Operator::Add | Operator::Subtract | Operator::Not => {
+                    self.lexer.next_token();
+                    ASTNode::Unary(op, Box::new(self.parse_factor()?))
+                }
+                _ => return Err(String::from("Parse error"))
+            }
+        } else {
+            self.parse_item()?
+        };
+
         while let Token::Operator(op) = self.lexer.peek() {
             if let Operator::Exponent = op {
                 self.lexer.next_token();
@@ -66,6 +73,7 @@ impl Parser {
                 break;
             }
         }
+
         Ok(item_node)
     }
 
