@@ -11,6 +11,7 @@ pub enum Token {
     Comma,
     EOF,
 }
+
 #[derive(Debug, Clone)]
 pub enum Operator {
     Add,
@@ -21,6 +22,10 @@ pub enum Operator {
     Exponent,
     NotEqual,
     Equal,
+    Greater,
+    GreaterEqual,
+    Lesser,
+    LesserEqual,
     And,
     Or,
     Not,
@@ -69,13 +74,9 @@ impl Lexer {
             let next_character = text.chars().nth(index + 1).unwrap_or('\0'); // Just default to a character we ignore
 
             match character {
-                '!' => {
-                    if next_character == '=' {
-                        tokens.push_front(Token::Operator(Operator::NotEqual));
-                    } else {
-                        tokens.push_front(Token::Operator(Operator::Not));
-                    }
-                }
+                '!' => tokens.push_front(if next_character == '=' { Token::Operator(Operator::NotEqual) } else { Token::Operator(Operator::Not) }),
+                '>' => tokens.push_front(if next_character == '=' { Token::Operator(Operator::GreaterEqual) } else { Token::Operator(Operator::Greater) }),
+                '<' => tokens.push_front(if next_character == '=' { Token::Operator(Operator::LesserEqual) } else { Token::Operator(Operator::Lesser) }),
                 '=' if next_character == '=' => tokens.push_front(Token::Operator(Operator::Equal)),
                 '&' if next_character == '&' => tokens.push_front(Token::Operator(Operator::And)),
                 '|' if next_character == '|' => tokens.push_front(Token::Operator(Operator::Or)),

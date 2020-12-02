@@ -1,6 +1,6 @@
 use crate::{lexer::*, parser::*};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, PartialOrd)]
 pub enum InterpreterResult {
     Number(f64),
     Bool(bool),
@@ -40,6 +40,11 @@ pub fn evaluate_ast(node: ASTNode) -> Result<InterpreterResult, String> {
             match operator {
                 Operator::Equal => Ok(InterpreterResult::Bool(left_result == right_result)),
                 Operator::NotEqual => Ok(InterpreterResult::Bool(left_result != right_result)),
+                Operator::Greater => Ok(InterpreterResult::Bool(left_result > right_result)),
+                Operator::GreaterEqual => Ok(InterpreterResult::Bool(left_result >= right_result)),
+                Operator::Lesser => Ok(InterpreterResult::Bool(left_result < right_result)),
+                Operator::LesserEqual => Ok(InterpreterResult::Bool(left_result <= right_result)),
+
                 Operator::And => Ok(InterpreterResult::Bool(perform_logical_operator(left_result, right_result, Box::new(|a, b| a && b))?)),
                 Operator::Or => Ok(InterpreterResult::Bool(perform_logical_operator(left_result, right_result, Box::new(|a, b| a || b))?)),
 

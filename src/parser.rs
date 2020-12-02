@@ -111,21 +111,37 @@ impl Parser {
         Ok(term_node)
     }
 
-    pub fn parse_equality(&mut self) -> Result<ASTNode, String> {
+    pub fn parse_comparison(&mut self) -> Result<ASTNode, String> {
         let mut expr_node: ASTNode = self.parse_expression()?;
+
+        while let Token::Operator(op_peek) = self.lexer.peek() {
+            match op_peek {
+                Operator::Greater | Operator::Lesser | Operator::GreaterEqual | Operator::LesserEqual => {
+                    self.lexer.next_token();
+                    expr_node = ASTNode::Binary(op_peek, Box::new(expr_node), Box::new(self.parse_expression()?))
+                }
+                _ => break
+            }
+        }
+
+        Ok(expr_node)
+    }
+
+    pub fn parse_equality(&mut self) -> Result<ASTNode, String> {
+        let mut comp_node: ASTNode = self.parse_comparison()?;
 
         while let Token::Operator(op_peek) = self.lexer.peek() {
             match op_peek {
                 Operator::Equal | Operator::NotEqual => {
                     if let Token::Operator(op) = self.lexer.next_token() {
-                        expr_node = ASTNode::Binary (op, Box::new(expr_node), Box::new(self.parse_expression()?));
+                        comp_node = ASTNode::Binary (op, Box::new(comp_node), Box::new(self.parse_expression()?));
                     }
                 }
                 _ => break,
             }
         }
 
-        Ok(expr_node)
+        Ok(comp_node)
     }
 
     pub fn parse_logical_or(&mut self) -> Result<ASTNode, String> {
