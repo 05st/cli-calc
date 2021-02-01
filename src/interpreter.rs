@@ -95,7 +95,7 @@ pub fn evaluate_ast(node: ASTNode) -> Result<InterpreterResult, String> {
             match function_name.as_str() {
                 "abs" => Ok(InterpreterResult::Number(args[0].abs())),
                 "sin" => Ok(InterpreterResult::Number(args[0].sin())),
-                "cos" => Ok(InterpreterResult::Number(args[0].sin())),
+                "cos" => Ok(InterpreterResult::Number(args[0].cos())),
                 "tan" => Ok(InterpreterResult::Number(args[0].tan())),
                 "asin" => Ok(InterpreterResult::Number(args[0].asin())),
                 "atan" => Ok(InterpreterResult::Number(args[0].atan())),
