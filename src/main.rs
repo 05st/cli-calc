@@ -14,7 +14,7 @@ use std::{
 use colour::yellow;
 
 fn main() {
-    println!("cli-calc version 1.0\ntype :help for commands");
+    println!("cli-calc version 1.1\ntype :help for commands");
 
     let mut debug: bool = false;
 

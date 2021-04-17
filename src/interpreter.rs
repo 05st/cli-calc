@@ -34,17 +34,31 @@ pub fn evaluate_ast(node: ASTNode) -> Result<InterpreterResult, String> {
     match node {
         ASTNode::Number(value) => Ok(InterpreterResult::Number(value)),
         ASTNode::Bool(value) => Ok(InterpreterResult::Bool(value)),
+
+        ASTNode::Comparison(operators, operands) => {
+            let mut result: bool = true;
+            let mut eval_operands: Vec<InterpreterResult> = vec![];
+            for operand in operands.iter() {
+                eval_operands.push(evaluate_ast(operand.clone())?);
+            }
+            for (i, operator) in operators.iter().enumerate() {
+                let (left, right) = (&eval_operands[i], &eval_operands[i+1]);
+                match operator {
+                    Operator::Equal => result &= left == right,
+                    Operator::NotEqual => result &= left != right,
+                    Operator::Greater => result &= left > right,
+                    Operator::GreaterEqual => result &= left >= right,
+                    Operator::Lesser => result &= left < right,
+                    Operator::LesserEqual => result &= left <= right,
+                    _ => return Err(String::from("Invalid comparison operator"))
+                }
+            }
+            Ok(InterpreterResult::Bool(result))
+        }
         
         ASTNode::Binary(operator, left_node, right_node) => {
             let (left_result, right_result) = (evaluate_ast(*left_node)?, evaluate_ast(*right_node)?);
             match operator {
-                Operator::Equal => Ok(InterpreterResult::Bool(left_result == right_result)),
-                Operator::NotEqual => Ok(InterpreterResult::Bool(left_result != right_result)),
-                Operator::Greater => Ok(InterpreterResult::Bool(left_result > right_result)),
-                Operator::GreaterEqual => Ok(InterpreterResult::Bool(left_result >= right_result)),
-                Operator::Lesser => Ok(InterpreterResult::Bool(left_result < right_result)),
-                Operator::LesserEqual => Ok(InterpreterResult::Bool(left_result <= right_result)),
-
                 Operator::And => Ok(InterpreterResult::Bool(perform_logical_operator(left_result, right_result, Box::new(|a, b| a && b))?)),
                 Operator::Or => Ok(InterpreterResult::Bool(perform_logical_operator(left_result, right_result, Box::new(|a, b| a || b))?)),
 
