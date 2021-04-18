@@ -18,7 +18,7 @@ fn perform_arithmetic_operator(left_result: InterpreterResult, right_result: Int
     if let (InterpreterResult::Number(left_value), InterpreterResult::Number(right_value)) = (left_result, right_result) {
         Ok(operation(left_value, right_value))
     } else {
-        Err(String::from("Attempt to perform arithmetic operators on boolean values"))
+        Err(String::from("Attempt to perform arithmetic/bitwise operators on boolean values"))
     }
 }
 
@@ -69,6 +69,12 @@ pub fn evaluate_ast(node: ASTNode) -> Result<InterpreterResult, String> {
                 Operator::Modulo => Ok(InterpreterResult::Number(perform_arithmetic_operator(left_result, right_result, Box::new(|a, b| a % b))?)),
                 Operator::Exponent => Ok(InterpreterResult::Number(perform_arithmetic_operator(left_result, right_result, Box::new(|a, b| a.powf(b)))?)),
 
+                Operator::BWLeftShift => Ok(InterpreterResult::Number(perform_arithmetic_operator(left_result, right_result, Box::new(|a, b| ((a as i64) << (b as i64)) as f64))?)),
+                Operator::BWRightShift => Ok(InterpreterResult::Number(perform_arithmetic_operator(left_result, right_result, Box::new(|a, b| ((a as i64) >> (b as i64)) as f64))?)),
+                Operator::BWAnd => Ok(InterpreterResult::Number(perform_arithmetic_operator(left_result, right_result, Box::new(|a, b| ((a as i64) & (b as i64)) as f64))?)),
+                Operator::BWOr => Ok(InterpreterResult::Number(perform_arithmetic_operator(left_result, right_result, Box::new(|a, b| ((a as i64) | (b as i64)) as f64))?)),
+                Operator::BWXor => Ok(InterpreterResult::Number(perform_arithmetic_operator(left_result, right_result, Box::new(|a, b| ((a as i64) ^ (b as i64)) as f64))?)),
+
                 _ => Err(String::from("Invalid binary operator"))
             }
         }
@@ -88,6 +94,13 @@ pub fn evaluate_ast(node: ASTNode) -> Result<InterpreterResult, String> {
                         Ok(InterpreterResult::Bool(!value))
                     } else {
                         Err(String::from("Attempt to perform logical not on number"))
+                    }
+                }
+                Operator::BWNot => {
+                    if let InterpreterResult::Number(value) = operand_result {
+                        Ok(InterpreterResult::Number((!(value as i64)) as f64))
+                    } else {
+                        Err(String::from("Attempt to perform bitwise not on boolean"))
                     }
                 }
                 _ => Ok(operand_result)

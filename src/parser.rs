@@ -52,10 +52,38 @@ impl Parser {
     }
 
     fn parse_expression(&mut self) -> Result<ASTNode, String> {
-        let mut term: ASTNode = self.parse_term()?;
+        let mut bw: ASTNode = self.parse_bitwise()?;
         while let Token::Operator(peek) = self.lexer.peek() {
             match peek {
                 Operator::Add | Operator::Subtract => {
+                    self.lexer.next_token();
+                    bw = ASTNode::Binary(peek, Box::new(bw), Box::new(self.parse_bitwise()?));
+                }
+                _ => break,
+            }
+        }
+        Ok(bw)
+    }
+
+    fn parse_bitwise(&mut self) -> Result<ASTNode, String> {
+        let mut bwshift: ASTNode = self.parse_bwshifts()?;
+        while let Token::Operator(peek) = self.lexer.peek() {
+            match peek {
+                Operator::BWOr | Operator::BWAnd | Operator::BWXor => {
+                    self.lexer.next_token();
+                    bwshift = ASTNode::Binary(peek, Box::new(bwshift), Box::new(self.parse_bwshifts()?));
+                }
+                _ => break,
+            }
+        }
+        Ok(bwshift)
+    }
+
+    fn parse_bwshifts(&mut self) -> Result<ASTNode, String> {
+        let mut term: ASTNode = self.parse_term()?;
+        while let Token::Operator(peek) = self.lexer.peek() {
+            match peek {
+                Operator::BWLeftShift | Operator::BWRightShift => {
                     self.lexer.next_token();
                     term = ASTNode::Binary(peek, Box::new(term), Box::new(self.parse_term()?));
                 }
@@ -82,7 +110,7 @@ impl Parser {
     fn parse_factor(&mut self) -> Result<ASTNode, String> {
         let mut item: ASTNode = if let Token::Operator(op) = self.lexer.peek() {
             match op {
-                Operator::Add | Operator::Subtract | Operator::Not => {
+                Operator::Add | Operator::Subtract | Operator::Not | Operator::BWNot => {
                     self.lexer.next_token();
                     ASTNode::Unary(op, Box::new(self.parse_factor()?))
                 }

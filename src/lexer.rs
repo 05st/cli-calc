@@ -29,6 +29,12 @@ pub enum Operator {
     And,
     Or,
     Not,
+    BWLeftShift,
+    BWRightShift,
+    BWOr,
+    BWXor,
+    BWAnd,
+    BWNot,
 }
 
 pub struct Lexer {
@@ -50,7 +56,14 @@ impl Lexer {
         let mut num_buffer: String = String::new();
         let mut ide_buffer: String = String::new();
 
+        let mut skip_next: bool = false;
+
         for (index, character) in text.chars().enumerate() {
+            if skip_next {
+                skip_next = false;
+                continue;
+            }
+
             if (character.is_alphabetic() && ide_buffer.is_empty()) || (character.is_alphanumeric() && !ide_buffer.is_empty()) {
                 ide_buffer += &character.to_string();
                 continue;
@@ -74,18 +87,31 @@ impl Lexer {
             let next_character = text.chars().nth(index + 1).unwrap_or('\0'); // Just default to a character we ignore
 
             match character {
-                '!' => tokens.push_front(if next_character == '=' { Token::Operator(Operator::NotEqual) } else { Token::Operator(Operator::Not) }),
-                '>' => tokens.push_front(if next_character == '=' { Token::Operator(Operator::GreaterEqual) } else { Token::Operator(Operator::Greater) }),
-                '<' => tokens.push_front(if next_character == '=' { Token::Operator(Operator::LesserEqual) } else { Token::Operator(Operator::Lesser) }),
-                '=' if next_character == '=' => tokens.push_front(Token::Operator(Operator::Equal)),
-                '&' if next_character == '&' => tokens.push_front(Token::Operator(Operator::And)),
-                '|' if next_character == '|' => tokens.push_front(Token::Operator(Operator::Or)),
+                '>' => tokens.push_front(match next_character {
+                    '=' => { skip_next = true; Token::Operator(Operator::GreaterEqual) },
+                    '>' => { skip_next = true; Token::Operator(Operator::BWRightShift) },
+                    _ => Token::Operator(Operator::Greater),
+                }),
+                '<' => tokens.push_front(match next_character {
+                    '=' => { skip_next = true; Token::Operator(Operator::LesserEqual) },
+                    '<' => { skip_next = true; Token::Operator(Operator::BWLeftShift) },
+                    _ => Token::Operator(Operator::Lesser),
+                }),
+                '|' => tokens.push_front(match next_character {
+                    '|' => { skip_next = true; Token::Operator(Operator::Or) },
+                    '^' => { skip_next = true; Token::Operator(Operator::BWXor) },
+                    _ => Token::Operator(Operator::BWOr),
+                }),
+                '!' => tokens.push_front(if next_character == '=' { skip_next = true; Token::Operator(Operator::NotEqual) } else { Token::Operator(Operator::Not) }),
+                '&' => tokens.push_front(if next_character == '&' { skip_next = true; Token::Operator(Operator::And) } else { Token::Operator(Operator::BWAnd) }),
+                '=' if next_character == '=' => { skip_next = true; tokens.push_front(Token::Operator(Operator::Equal)) },
                 '+' => tokens.push_front(Token::Operator(Operator::Add)),
                 '-' => tokens.push_front(Token::Operator(Operator::Subtract)),
                 '*' => tokens.push_front(Token::Operator(Operator::Multiply)),
                 '/' => tokens.push_front(Token::Operator(Operator::Divide)),
                 '%' => tokens.push_front(Token::Operator(Operator::Modulo)),
                 '^' => tokens.push_front(Token::Operator(Operator::Exponent)),
+                '~' => tokens.push_front(Token::Operator(Operator::BWNot)),
                 '(' => tokens.push_front(Token::LeftParen),
                 ')' => tokens.push_front(Token::RightParen),
                 ',' => tokens.push_front(Token::Comma),
