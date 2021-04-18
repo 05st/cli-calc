@@ -36,12 +36,26 @@ fn main() {
             ":help" => {
                 println!("\
                     :help\n\
+                    :opers\n\
                     :funcs\n\
                     :debug\n\
                     :exit\
-                ")
+                ");
             }
-            ":funcs" =>{
+            ":opers" => {
+                println!("\
+                    1: ( )\t\t\t[Parentheses]\n\
+                    2: ^\t\t\t[Exponentiation]\n\
+                    3: + - ~ !\t\t[Unary]\n\
+                    4: * / %\t\t[Multiply, Divide, Modulo]\n\
+                    5: << >>\t\t[Bitwise Shifts]\n\
+                    6: | & |^\t\t[Bitwise Or, And, Xor]\n\
+                    7: + -\t\t\t[Add, Subtract]\n\
+                    8: == != > >= < <=\t[Comparisons]\n\
+                    9: || &&\t\t[Or, And]\
+                ");
+            }
+            ":funcs" => {
                 println!("\
                     abs(x)\n\
                     acos(x)\n\
@@ -80,7 +94,7 @@ fn main() {
                     tan(x)\n\
                     tanh(x)\n\
                     trunc(x)\
-                ")
+                ");
             }
             _ => {
                 let lexer: Lexer = Lexer::new(input);
